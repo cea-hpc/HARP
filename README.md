@@ -11,11 +11,11 @@ Profiling can be done on both single-precision and double-precision floating-poi
 ## Quickstart
 ### Pre-requisites
 - [Rust](https://rustup.rs/) 1.68.0+
-- OpenCL 1.1+
+- [OpenCL 2.0+](https://www.khronos.org/opencl/)
 - [NVIDIA CUDA Toolkit](https://developer.nvidia.com/cuda-downloads) 11.2+ (12.0 recommended) and appropriate drivers
   - `libnvvm` library
   - [LLVM 7.x](https://github.com/llvm/llvm-project/releases/tag/llvmorg-7.1.0) (7.0 to 7.4)
-- Python 3.7+ (only needed for plot generation)
+- [Python](https://www.python.org/downloads/) 3.7+ (only needed for plot generation)
 
 ### Build
 First, clone this repository locally:
@@ -37,6 +37,12 @@ To execute HARP and profile a DGEMM on multiple matrix sizes, execute the follow
 cargo run --release -- dgemm --sizes 512 1024 1532 2048 3072 4096
 # Or with shortand aliases
 cargo r -r -- dgemm -s 512 1024 1532 2048 3072 4096
+```
+
+### Documentation
+The crate's documentation is available using `cargo`:
+```sh
+cargo doc --open
 ```
 
 ## Contributing
