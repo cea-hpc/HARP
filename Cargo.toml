@@ -1,0 +1,18 @@
+[package]
+name = "harp"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "4.2", features = ["derive"] }
+cust = { version = "0.3.2", features = ["bytemuck"] }
+num = "0.4.0"
+ocl = "0.19.4"
+rand = { version = "0.8.5", features = ["small_rng"] }
+rayon = "1.7.0"
+statistical = "1.0.0"
+
+[build-dependencies]
+cuda_builder = "0.3.0"
