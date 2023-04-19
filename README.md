@@ -3,9 +3,10 @@
 ## About
 HARP is a simple profiler for evaluating the performance of hardware-accelerated Rust code. It aims at gauging the capabilities of Rust as a first-class language for GPGPU computing, especially in the field of High Performance Computing (HPC).  
 
-Currently, HARP can profile the following GPU-accelerated kernels (with OpenCL and CUDA implementaions):
-- `axpy`
-- `gemm`
+Currently, HARP can profile the following GPU-accelerated kernels (targeting OpenCL C and NVIDIA CUDA C++ implementations):
+- AXPY (general vector-vector addition)
+- GEMM (general dense matrix-matrix multiplication)
+Profiling can be done on both single-precision and double-precision floating-point formats (see [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754)).
 
 ## Quickstart
 ### Pre-requisites
@@ -19,8 +20,8 @@ Currently, HARP can profile the following GPU-accelerated kernels (with OpenCL a
 ### Build
 First, clone this repository locally:
 ```sh
-git clone https://github.com/cea-hpc/harp
-cd harp
+git clone https://github.com/cea-hpc/HARP
+cd HARP
 ```
 
 As any Rust-based project, HARP is built with `cargo`:
@@ -34,10 +35,12 @@ See HARP's documentation for the full list of supported flags or use the `--help
 To execute HARP and profile a DGEMM on multiple matrix sizes, execute the following example command:
 ```sh
 cargo run --release -- dgemm --sizes 512 1024 1532 2048 3072 4096
+# Or with shortand aliases
+cargo r -r -- dgemm -s 512 1024 1532 2048 3072 4096
 ```
 
 ## Contributing
-Contributions are welcome and accepted as pull requests on [GitHub](https://github.com/cea-hpc/harp).
+Contributions are welcome and accepted as pull requests on [GitHub](https://github.com/cea-hpc/HARP).
 
 You may also ask questions or file bug reports on the issue tracker.
 
