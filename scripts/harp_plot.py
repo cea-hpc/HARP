@@ -57,11 +57,12 @@ def main():
         if i == 0:
             # Average runtime plot
             for v, variant in enumerate(variants):
-                data = df[df["variant"] == variant]
+                data = df[df.variant == variant]
                 fig.add_trace(
                     go.Scatter(
                         x=data["elems_per_dim"],
                         y=data["avg_runtime"],
+                        error_y=dict(type='data', array=data["stddev"], visible=True),
                         mode="lines",
                         name=variant,
                         legendgroup="group1",
