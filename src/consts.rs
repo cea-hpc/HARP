@@ -11,3 +11,7 @@ pub const BLOCK_SIZE_1D: usize = 1024;
 
 /// Matrix block size.
 pub const BLOCK_SIZE_2D: usize = 32;
+
+/// Number of items to process per CUDA threads.
+// NOTE: specific to CUDA tiled DGEMM.
+pub const WORK_PER_THREAD: usize = 8;
