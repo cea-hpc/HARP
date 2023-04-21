@@ -12,7 +12,7 @@
 //! [2]: https://crates.io/crates/cust
 
 use crate::{
-    consts::{BLOCK_SIZE_1D, BLOCK_SIZE_2D},
+    consts::{BLOCK_SIZE_1D, BLOCK_SIZE_2D, WORK_PER_THREAD},
     kernels::device::DeviceKernel,
     perf_report::*,
     utils::{is_of_type, HarpFloat},
@@ -260,8 +260,23 @@ pub fn cuda_gemm<T: HarpFloat + DeviceCopy>(
     // Get kernel from module
     let kernel = module.get_function(kernel_info.name())?;
 
-    let block_size = BlockSize::xy(BLOCK_SIZE_2D as u32, BLOCK_SIZE_2D as u32);
-    let grid_size = GridSize::xy(size as u32 / block_size.x, size as u32 / block_size.y);
+    let (block_size, grid_size) = match variant {
+        DeviceKernelVariant::CudaNaive => (
+            BlockSize::xy(BLOCK_SIZE_2D as u32, BLOCK_SIZE_2D as u32),
+            GridSize::xy(
+                size as u32 / BLOCK_SIZE_2D as u32,
+                size as u32 / BLOCK_SIZE_2D as u32,
+            ),
+        ),
+        DeviceKernelVariant::CudaTiled => (
+            BlockSize::xy(
+                BLOCK_SIZE_2D as u32,
+                (BLOCK_SIZE_2D / WORK_PER_THREAD) as u32,
+            ),
+            GridSize::xy((size / BLOCK_SIZE_2D) as u32, (size / BLOCK_SIZE_2D) as u32),
+        ),
+        _ => unreachable!(),
+    };
 
     // Measure execution time of kernel
     let mut durations = Vec::with_capacity(meta_reps.into());
