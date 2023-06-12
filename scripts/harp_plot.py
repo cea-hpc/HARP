@@ -29,14 +29,16 @@ def main():
 
     # Define some colors
     colors = [
-        "#8839ef",
-        "#d20f39",
-        "#df8e1d",
-        "#40a02b",
-        "#179299",
-        "#1e66f5",
-        "#dc8a78",
+        "#e78284", # red/Seq naive
+        "#8caaee", # blue/Seq iter
+        "#a6d189", # green/Rayon iter
+        "#e5c890", # yellow/CL naive
+        "#ca9ee6", # mauve/CL tiled
+        "#f2d5cf", # rosewater/CUDA naive
+        "#ef9f72", # peach/CUDA tiled
+        "#414559", # gray/Rust-CUDA
     ]
+    assert(len(colors) >= len(variants), "Not enough colors")
 
     # Define the figure and subplots
     fig = make_subplots(
