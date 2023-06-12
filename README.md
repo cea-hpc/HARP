@@ -6,8 +6,10 @@ HARP is a simple profiler for evaluating the performance of hardware-accelerated
 Currently, HARP can profile the following GPU-accelerated kernels (targeting OpenCL C and NVIDIA CUDA C++ implementations):
 - AXPY (general vector-vector addition)
 - GEMM (general dense matrix-matrix multiplication)
+- Reduce (32-bit integer sum reduction)
+- Scan (32-bit integer sum exclusive scan)
 
-Profiling can be done on both single-precision and double-precision floating-point formats (see [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754)).
+Profiling can be done on both single-precision and double-precision floating-point formats (see [IEEE 754](https://en.wikipedia.org/wiki/IEEE_754)). The `reduce` and `scan` kernels are only supported using 32-bit signed integers for the moment.
 
 ## Quickstart
 ### Pre-requisites
