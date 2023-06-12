@@ -5,6 +5,9 @@
 pub mod device {
     //! Device kernel implementations.
 
+    use cust::{function::Function, prelude::*, stream::Stream};
+    use std::mem::size_of;
+
     /// Represents a device kernel.
     ///
     /// As there is no generic way of writing of function that will execute on an accelerator in
@@ -40,51 +43,176 @@ pub mod device {
 
     /// Name and source code of the OpenCL SAXPY.
     pub static CL_SAXPY: DeviceKernel =
-        DeviceKernel::new("saxpy", include_str!("../kernels/saxpy.cl"));
+        DeviceKernel::new("saxpy", include_str!("../kernels/opencl/saxpy.cl"));
 
     /// Name and source code of the OpenCL DAXPY.
     pub static CL_DAXPY: DeviceKernel =
-        DeviceKernel::new("daxpy", include_str!("../kernels/daxpy.cl"));
+        DeviceKernel::new("daxpy", include_str!("../kernels/opencl/daxpy.cl"));
 
     /// Name and source code of the naive OpenCL SGEMM.
-    pub static CL_NAIVE_SGEMM: DeviceKernel =
-        DeviceKernel::new("naive_sgemm", include_str!("../kernels/naive_sgemm.cl"));
+    pub static CL_NAIVE_SGEMM: DeviceKernel = DeviceKernel::new(
+        "naive_sgemm",
+        include_str!("../kernels/opencl/naive_sgemm.cl"),
+    );
 
     /// Name and source code of the naive OpenCL DGEMM.
-    pub static CL_NAIVE_DGEMM: DeviceKernel =
-        DeviceKernel::new("naive_dgemm", include_str!("../kernels/naive_dgemm.cl"));
+    pub static CL_NAIVE_DGEMM: DeviceKernel = DeviceKernel::new(
+        "naive_dgemm",
+        include_str!("../kernels/opencl/naive_dgemm.cl"),
+    );
 
     /// Name and source code of the tiled OpenCL SGEMM.
-    pub static CL_TILED_SGEMM: DeviceKernel =
-        DeviceKernel::new("tiled_sgemm", include_str!("../kernels/tiled_sgemm.cl"));
+    pub static CL_TILED_SGEMM: DeviceKernel = DeviceKernel::new(
+        "tiled_sgemm",
+        include_str!("../kernels/opencl/tiled_sgemm.cl"),
+    );
 
     /// Name and source code of the tiled OpenCL DGEMM.
-    pub static CL_TILED_DGEMM: DeviceKernel =
-        DeviceKernel::new("tiled_dgemm", include_str!("../kernels/tiled_dgemm.cl"));
+    pub static CL_TILED_DGEMM: DeviceKernel = DeviceKernel::new(
+        "tiled_dgemm",
+        include_str!("../kernels/opencl/tiled_dgemm.cl"),
+    );
 
     /// Name and source code of the NVIDIA CUDA SAXPY (as pre-compiled PTX).
     pub static CUDA_SAXPY: DeviceKernel =
-        DeviceKernel::new("saxpy", include_str!("../kernels/saxpy.ptx"));
+        DeviceKernel::new("saxpy", include_str!("../kernels/cuda_cpp/saxpy.ptx"));
 
     /// Name and source code of the NVIDIA CUDA DAXPY (as pre-compiled PTX).
     pub static CUDA_DAXPY: DeviceKernel =
-        DeviceKernel::new("daxpy", include_str!("../kernels/daxpy.ptx"));
+        DeviceKernel::new("daxpy", include_str!("../kernels/cuda_cpp/daxpy.ptx"));
 
     /// Name and source code of the naive NVIDIA CUDA SGEMM (as pre-compiled PTX).
-    pub static CUDA_NAIVE_SGEMM: DeviceKernel =
-        DeviceKernel::new("naive_sgemm", include_str!("../kernels/naive_sgemm.ptx"));
+    pub static CUDA_NAIVE_SGEMM: DeviceKernel = DeviceKernel::new(
+        "naive_sgemm",
+        include_str!("../kernels/cuda_cpp/naive_sgemm.ptx"),
+    );
 
     /// Name and source code of the naive NVIDIA CUDA DGEMM (as pre-compiled PTX).
-    pub static CUDA_NAIVE_DGEMM: DeviceKernel =
-        DeviceKernel::new("naive_dgemm", include_str!("../kernels/naive_dgemm.ptx"));
+    pub static CUDA_NAIVE_DGEMM: DeviceKernel = DeviceKernel::new(
+        "naive_dgemm",
+        include_str!("../kernels/cuda_cpp/naive_dgemm.ptx"),
+    );
 
     /// Name and source code of the tiled NVIDIA CUDA SGEMM (as pre-compiled PTX).
-    pub static CUDA_TILED_SGEMM: DeviceKernel =
-        DeviceKernel::new("tiled_sgemm", include_str!("../kernels/tiled_sgemm.ptx"));
+    pub static CUDA_TILED_SGEMM: DeviceKernel = DeviceKernel::new(
+        "tiled_sgemm",
+        include_str!("../kernels/cuda_cpp/tiled_sgemm.ptx"),
+    );
 
     /// Name and source code of the tiled NVIDIA CUDA DGEMM (as pre-compiled PTX).
-    pub static CUDA_TILED_DGEMM: DeviceKernel =
-        DeviceKernel::new("tiled_dgemm", include_str!("../kernels/tiled_dgemm.ptx"));
+    pub static CUDA_TILED_DGEMM: DeviceKernel = DeviceKernel::new(
+        "tiled_dgemm",
+        include_str!("../kernels/cuda_cpp/tiled_dgemm.ptx"),
+    );
+
+    pub static RUST_CUDA_TILED_DGEMM: DeviceKernel =
+        DeviceKernel::new("gemm", include_str!("../kernels/rust_cuda/gemm.ptx"));
+
+    pub static CUDA_INTEGER_SUM_REDUCE: DeviceKernel =
+        DeviceKernel::new("reduce", include_str!("../kernels/cuda_cpp/reduce.ptx"));
+
+    pub static CUDA_INTEGER_SUM_EXCLUSIVE_SCAN: DeviceKernel =
+        DeviceKernel::new("scan", include_str!("../kernels/cuda_cpp/scan.ptx"));
+
+    pub fn scan(
+        scan_kernel: &Function,
+        block_sum_kernel: &Function,
+        d_in: &DeviceBuffer<i32>,
+        d_out: &mut DeviceBuffer<i32>,
+        block_size: u32,
+        smem_size: u32,
+        stream: &Stream,
+    ) {
+        // Zero out the output data buffer
+        d_out
+            .set_zero()
+            .expect("failed to zero out device output buffer");
+
+        // Compute new grid size
+        let len = d_in.len() as u32;
+        let mut grid_size = len / block_size;
+        if len % block_size != 0 {
+            grid_size += 1;
+        }
+
+        // Allocate buffer for each block's partial sum
+        let mut block_sums = DeviceBuffer::<i32>::zeroed(grid_size as usize)
+            .expect("failed to create `block_sums` device buffer");
+
+        // Launch first step of the kernel
+        unsafe {
+            launch!(
+                scan_kernel<<<grid_size, block_size / 2, smem_size * size_of::<i32>() as u32, stream>>>(
+                    d_in.as_device_ptr(),
+                    d_in.len(),
+                    d_out.as_device_ptr(),
+                    block_sums.as_device_ptr(),
+                    block_size,
+                    smem_size
+                )
+            )
+            .expect("failed to launch kernel `scan`");
+        }
+        stream
+            .synchronize()
+            .expect("failed to synchronize kernel `scan`");
+
+        // Finish if there is only block left, else recurse until there is
+        if grid_size <= block_size {
+            let dummy =
+                DeviceBuffer::<i32>::zeroed(1).expect("failed to create `dummy` device buffer");
+
+            unsafe {
+                launch!(
+                    scan_kernel<<<1, block_size / 2, smem_size * size_of::<i32>() as u32, stream>>>(
+                        block_sums.as_device_ptr(),
+                        block_sums.len(), // this is `grid_size`
+                        block_sums.as_device_ptr(),
+                        dummy.as_device_ptr(),
+                        block_size,
+                        smem_size
+                    )
+                )
+                .expect("failed to launch last `scan` step");
+            }
+            stream
+                .synchronize()
+                .expect("failed to synchronize kernel `scan` (end of recursion)");
+        } else {
+            let mut in_block_sums = DeviceBuffer::<i32>::zeroed(block_sums.len())
+                .expect("failed to create `in_block_sums` device buffer");
+
+            block_sums
+                .copy_to(&mut in_block_sums)
+                .expect("failed to copy `block_sums` into `in_block_sums`");
+
+            scan(
+                scan_kernel,
+                block_sum_kernel,
+                &in_block_sums,
+                &mut block_sums,
+                block_size,
+                smem_size,
+                stream,
+            );
+        }
+
+        // Update the rest of the buffer's elements with the partial sum of each block
+        unsafe {
+            launch!(
+            block_sum_kernel<<<grid_size, block_size / 2, 0, stream>>>(
+                d_in.as_device_ptr(),
+                d_in.len(),
+                d_out.as_device_ptr(),
+                block_sums.as_device_ptr(),
+                block_sums.len()
+            ))
+            .expect("failed to launch kernel `block_sums`");
+        }
+        stream
+            .synchronize()
+            .expect("failed to synchronize kernel `block_sums`");
+    }
 }
 
 pub mod host {
@@ -198,5 +326,27 @@ pub mod host {
                                     .fold(T::default(), |acc, (a_l, b_l)| acc + *a_l * *b_l);
                     })
             });
+    }
+
+    pub fn reduce(x: &[i32]) -> i32 {
+        x.iter().sum()
+    }
+
+    pub fn par_reduce(x: &[i32]) -> i32 {
+        x.par_iter().cloned().reduce(|| 0, |acc, e| acc + e)
+    }
+
+    pub fn scan(x: &[i32]) -> Vec<i32> {
+        let mut skip = false;
+        x.iter()
+            .scan(0, |state, e| {
+                if skip {
+                    skip = true;
+                    return Some(*state);
+                }
+                *state += e;
+                Some(*state)
+            })
+            .collect()
     }
 }

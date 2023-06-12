@@ -313,6 +313,161 @@ pub fn gemm<T: HarpFloat + ocl::OclPrm + cust::memory::DeviceCopy>(args: CliArgs
             )
             .unwrap(),
         );
+
+        device_perf_reports.push(
+            device::cuda_gemm(
+                &RUST_CUDA_TILED_DGEMM,
+                size,
+                alpha,
+                beta,
+                &A,
+                &B,
+                &C.clone(),
+                args.meta_repetitions,
+                args.tight_loop_repetitions,
+                DeviceKernelVariant::RustCuda,
+            )
+            .unwrap(),
+        );
+    }
+
+    let mut output: Box<dyn Write> = match args.output_file {
+        Some(ref name) => Box::new(
+            OpenOptions::new()
+                .create(true)
+                .write(true)
+                .truncate(true)
+                .open(name)
+                .unwrap(),
+        ),
+        None => Box::new(stdout()),
+    };
+
+    PerfReport::<()>::print_csv_header(&mut output);
+    for report in host_perf_reports {
+        writeln!(output, "{report}").expect("Failed to write report");
+    }
+    for report in device_perf_reports {
+        writeln!(output, "{report}").expect("Failed to write report");
+    }
+}
+
+pub fn reduce(args: CliArgs) {
+    let lengths = match args.kernel {
+        KernelCmd::Ireduce { lengths } => lengths,
+        _ => unreachable!(),
+    };
+
+    // Initialize vector storing the performance reports for each benchmark
+    // TODO: Consider using a single vector to hold all performance reports.
+    let mut host_perf_reports = Vec::new();
+    let mut device_perf_reports = Vec::new();
+
+    // Very messy "trick" to runtime-check the type of `T` (either `f32`, or `f64`)
+    let kernel = &CUDA_INTEGER_SUM_REDUCE;
+
+    for len in lengths {
+        eprint!("Vector length: {len}\r");
+        // Initialize new `x` vector for each length
+        let x = vec![1; len];
+
+        // NOTE: The data (scalar and vectors) is immutably shared for all kernel variants. This is
+        // to make sure the values cannot impact the performance of the profiled kernel
+        // implementation.
+
+        // TODO: Consider using a crate such as `strum` to iterate over the available kernel
+        // variants in order to make the code more compact and simplify refactoring when adding new
+        // kernel implementations.
+        // OR make it so that the user can specify a set of variants to benchmark which would be
+        // iterated through here.
+        host_perf_reports.push(host::reduce(
+            &x,
+            args.meta_repetitions,
+            args.tight_loop_repetitions,
+            HostKernelVariant::SeqIter,
+        ));
+
+        host_perf_reports.push(host::reduce(
+            &x,
+            args.meta_repetitions,
+            args.tight_loop_repetitions,
+            HostKernelVariant::ParIter,
+        ));
+
+        device_perf_reports.push(
+            device::cuda_reduce(
+                kernel,
+                &x,
+                args.meta_repetitions,
+                args.tight_loop_repetitions,
+            )
+            .unwrap(),
+        );
+    }
+
+    let mut output: Box<dyn Write> = match args.output_file {
+        Some(ref name) => Box::new(
+            OpenOptions::new()
+                .create(true)
+                .write(true)
+                .truncate(true)
+                .open(name)
+                .unwrap(),
+        ),
+        None => Box::new(stdout()),
+    };
+
+    PerfReport::<()>::print_csv_header(&mut output);
+    for report in host_perf_reports {
+        writeln!(output, "{report}").expect("Failed to write report");
+    }
+    for report in device_perf_reports {
+        writeln!(output, "{report}").expect("Failed to write report");
+    }
+}
+
+pub fn scan(args: CliArgs) {
+    let lengths = match args.kernel {
+        KernelCmd::Iscan { lengths } => lengths,
+        _ => unreachable!(),
+    };
+
+    // Initialize vector storing the performance reports for each benchmark
+    // TODO: Consider using a single vector to hold all performance reports.
+    let mut host_perf_reports = Vec::new();
+    let mut device_perf_reports = Vec::new();
+
+    let kernel = &CUDA_INTEGER_SUM_EXCLUSIVE_SCAN;
+
+    for len in lengths {
+        eprint!("Vector length: {len}\r");
+        // Initialize new `x` vector for each length
+        let x = vec![1; len];
+
+        // NOTE: The data (scalar and vectors) is immutably shared for all kernel variants. This is
+        // to make sure the values cannot impact the performance of the profiled kernel
+        // implementation.
+
+        // TODO: Consider using a crate such as `strum` to iterate over the available kernel
+        // variants in order to make the code more compact and simplify refactoring when adding new
+        // kernel implementations.
+        // OR make it so that the user can specify a set of variants to benchmark which would be
+        // iterated through here.
+        host_perf_reports.push(host::scan(
+            &x,
+            args.meta_repetitions,
+            args.tight_loop_repetitions,
+        ));
+
+        device_perf_reports.push(
+            device::cuda_scan(
+                kernel,
+                &x,
+                args.meta_repetitions,
+                args.tight_loop_repetitions,
+            )
+            .unwrap(),
+        );
     }
 
     let mut output: Box<dyn Write> = match args.output_file {

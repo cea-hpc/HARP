@@ -98,4 +98,26 @@ pub enum KernelCmd {
         )]
         sizes: Vec<usize>,
     },
+    /// 32-bit integer vector sum reduction
+    Ireduce {
+        /// Lengths of the vectors.
+        #[arg(
+            short,
+            long,
+            required = true,
+            num_args = 1..,
+        )]
+        lengths: Vec<usize>,
+    },
+    /// 32-bit integer vector sum exclusive scan
+    Iscan {
+        /// Lengths of the vectors.
+        #[arg(
+            short,
+            long,
+            required = true,
+            num_args = 1..,
+        )]
+        lengths: Vec<usize>,
+    },
 }

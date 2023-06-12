@@ -97,5 +97,7 @@ fn main() {
         KernelCmd::Daxpy { lengths: _ } => drivers::axpy::<f64>(args),
         KernelCmd::Sgemm { sizes: _ } => drivers::gemm::<f32>(args),
         KernelCmd::Dgemm { sizes: _ } => drivers::gemm::<f64>(args),
+        KernelCmd::Ireduce { lengths: _ } => drivers::reduce(args),
+        KernelCmd::Iscan { lengths: _ } => drivers::scan(args),
     }
 }

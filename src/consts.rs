@@ -15,3 +15,9 @@ pub const BLOCK_SIZE_2D: usize = 32;
 /// Number of items to process per CUDA threads.
 // NOTE: specific to CUDA tiled DGEMM.
 pub const WORK_PER_THREAD: usize = 8;
+
+/// Number of threads in a warp.
+pub const WARP_SIZE: usize = 32;
+
+/// Logarithm of the number of memory banks (assuming 32).
+pub const LOG_NB_BANKS: usize = 5;

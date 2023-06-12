@@ -30,6 +30,8 @@ pub enum KernelKind {
     Daxpy,
     Sgemm,
     Dgemm,
+    Ireduce,
+    Iscan,
 }
 
 impl fmt::Display for KernelKind {
@@ -39,6 +41,8 @@ impl fmt::Display for KernelKind {
             Self::Daxpy => write!(f, "daxpy"),
             Self::Sgemm => write!(f, "sgemm"),
             Self::Dgemm => write!(f, "dgemm"),
+            Self::Ireduce => write!(f, "reduce"),
+            Self::Iscan => write!(f, "scan"),
         }
     }
 }
@@ -73,6 +77,7 @@ pub enum DeviceKernelVariant {
     ClTiled,
     CudaNaive,
     CudaTiled,
+    RustCuda,
 }
 
 impl KernelVariant for DeviceKernelVariant {}
@@ -84,6 +89,7 @@ impl fmt::Display for DeviceKernelVariant {
             Self::ClTiled => write!(f, "OpenCL tiled"),
             Self::CudaNaive => write!(f, "CUDA naive"),
             Self::CudaTiled => write!(f, "CUDA tiled"),
+            Self::RustCuda => write!(f, "Rust-CUDA (tiled)"),
         }
     }
 }
@@ -171,6 +177,8 @@ where
                 3 * size_of::<f64>() * nb_elems_per_dim * nb_elems_per_dim,
                 nb_elems_per_dim * nb_elems_per_dim * (2 * nb_elems_per_dim + 3),
             ),
+            KernelKind::Ireduce => (size_of::<i32>() * nb_elems_per_dim, nb_elems_per_dim),
+            KernelKind::Iscan => (size_of::<i32>() * nb_elems_per_dim, nb_elems_per_dim),
         };
 
         let memory_bandwidth = nb_bytes as f64 / 1024_f64.powi(3) / avg_time;

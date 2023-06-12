@@ -81,3 +81,61 @@ pub fn gemm<T: HarpFloat>(
     };
     PerfReport::new(TargetKind::Host, kind, variant, size, &mut durations)
 }
+
+/// Host driver for the 32-bit integer sum reduction kernel.
+///
+/// This function selects the correct host kernel given `variant` and profiles it.
+pub fn reduce(
+    x: &[i32],
+    meta_reps: u8,
+    tight_reps: u16,
+    variant: HostKernelVariant,
+) -> PerfReport<HostKernelVariant> {
+    // Match on given kernel variant
+    let kernel = match variant {
+        HostKernelVariant::SeqIter => host::reduce,
+        HostKernelVariant::ParIter => host::par_reduce,
+        _ => unreachable!(),
+    };
+
+    // Measure execution time of kernel
+    let mut durations = Vec::with_capacity(meta_reps.into());
+    for _ in 0..durations.capacity() {
+        let dur = Instant::now();
+        for _ in 0..tight_reps {
+            let _ = std::hint::black_box(kernel(x));
+        }
+        durations.push((dur.elapsed() / tight_reps as u32).as_secs_f64());
+    }
+
+    PerfReport::new(
+        TargetKind::Host,
+        KernelKind::Ireduce,
+        variant,
+        x.len(),
+        &mut durations,
+    )
+}
+
+/// Host driver for the 32-bit integer sum exclusive scan kernel.
+pub fn scan(x: &[i32], meta_reps: u8, tight_reps: u16) -> PerfReport<HostKernelVariant> {
+    let kernel = host::scan;
+
+    // Measure execution time of kernel
+    let mut durations = Vec::with_capacity(meta_reps.into());
+    for _ in 0..durations.capacity() {
+        let dur = Instant::now();
+        for _ in 0..tight_reps {
+            let _ = kernel(x);
+        }
+        durations.push((dur.elapsed() / tight_reps as u32).as_secs_f64());
+    }
+
+    PerfReport::new(
+        TargetKind::Host,
+        KernelKind::Ireduce,
+        HostKernelVariant::SeqIter,
+        x.len(),
+        &mut durations,
+    )
+}
