@@ -12,7 +12,7 @@
 //! [2]: https://crates.io/crates/cust
 
 use crate::{
-    consts::{BLOCK_SIZE_1D, BLOCK_SIZE_2D, LOG_NB_BANKS, WORK_PER_THREAD},
+    consts::{BLOCK_SIZE_1D, BLOCK_SIZE_2D, WORK_PER_THREAD},
     kernels::device::DeviceKernel,
     perf_report::*,
     utils::{is_of_type, HarpFloat},
@@ -396,28 +396,25 @@ pub fn cuda_scan(
     let d_x = DeviceBuffer::from_slice(h_x)?;
 
     let mut d_res = DeviceBuffer::<i32>::zeroed(h_x.len())?;
+    assert_eq!(d_x.len(), d_res.len());
 
     // Get kernel from module
     let scan_kernel = module.get_function(kernel_info.name())?;
     let block_sum_kernel = module.get_function("add_block_sums")?;
-
-    // Magic size for laptop
-    let block_size = BlockSize::x(BLOCK_SIZE_1D as u32);
-    let smem_size = block_size.x + ((block_size.x - 1) >> LOG_NB_BANKS);
 
     // Measure execution time of kernel
     let mut durations = Vec::with_capacity(meta_reps.into());
     for _ in 0..durations.capacity() {
         let dur = Instant::now();
         for _ in 0..tight_reps {
-            let _ = crate::kernels::device::scan(
+            crate::kernels::device::scan(
                 &scan_kernel,
                 &block_sum_kernel,
                 &d_x,
                 &mut d_res,
-                block_size.x,
-                smem_size,
+                d_x.len() as u32,
                 &stream,
+                0,
             );
         }
         stream.synchronize()?;

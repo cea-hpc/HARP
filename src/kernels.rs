@@ -8,6 +8,8 @@ pub mod device {
     use cust::{function::Function, prelude::*, stream::Stream};
     use std::mem::size_of;
 
+    use crate::consts::{BLOCK_SIZE_1D, LOG_NB_BANKS};
+
     /// Represents a device kernel.
     ///
     /// As there is no generic way of writing of function that will execute on an accelerator in
@@ -119,19 +121,22 @@ pub mod device {
         block_sum_kernel: &Function,
         d_in: &DeviceBuffer<i32>,
         d_out: &mut DeviceBuffer<i32>,
-        block_size: u32,
-        smem_size: u32,
+        nb_elem: u32,
         stream: &Stream,
+        depth: usize,
     ) {
         // Zero out the output data buffer
         d_out
             .set_zero()
             .expect("failed to zero out device output buffer");
 
+        let block_size = (BLOCK_SIZE_1D / 2) as u32;
+        let max_elems_per_block = 2 * block_size;
+        let smem_size = max_elems_per_block + ((max_elems_per_block - 1) >> LOG_NB_BANKS);
+
         // Compute new grid size
-        let len = d_in.len() as u32;
-        let mut grid_size = len / block_size;
-        if len % block_size != 0 {
+        let mut grid_size = nb_elem / max_elems_per_block;
+        if nb_elem % max_elems_per_block != 0 {
             grid_size += 1;
         }
 
@@ -142,12 +147,12 @@ pub mod device {
         // Launch first step of the kernel
         unsafe {
             launch!(
-                scan_kernel<<<grid_size, block_size / 2, smem_size * size_of::<i32>() as u32, stream>>>(
+                scan_kernel<<<grid_size, block_size, smem_size * size_of::<i32>() as u32, stream>>>(
                     d_in.as_device_ptr(),
                     d_in.len(),
                     d_out.as_device_ptr(),
                     block_sums.as_device_ptr(),
-                    block_size,
+                    max_elems_per_block,
                     smem_size
                 )
             )
@@ -155,21 +160,21 @@ pub mod device {
         }
         stream
             .synchronize()
-            .expect("failed to synchronize kernel `scan`");
+            .expect(format!("failed to synchronize kernel `scan` at depth {depth}").as_str());
 
         // Finish if there is only block left, else recurse until there is
-        if grid_size <= block_size {
+        if grid_size <= max_elems_per_block {
             let dummy =
                 DeviceBuffer::<i32>::zeroed(1).expect("failed to create `dummy` device buffer");
 
             unsafe {
                 launch!(
-                    scan_kernel<<<1, block_size / 2, smem_size * size_of::<i32>() as u32, stream>>>(
+                    scan_kernel<<<1, block_size, smem_size * size_of::<i32>() as u32, stream>>>(
                         block_sums.as_device_ptr(),
                         block_sums.len(), // this is `grid_size`
                         block_sums.as_device_ptr(),
                         dummy.as_device_ptr(),
-                        block_size,
+                        max_elems_per_block,
                         smem_size
                     )
                 )
@@ -179,7 +184,7 @@ pub mod device {
                 .synchronize()
                 .expect("failed to synchronize kernel `scan` (end of recursion)");
         } else {
-            let mut in_block_sums = DeviceBuffer::<i32>::zeroed(block_sums.len())
+            let mut in_block_sums = DeviceBuffer::<i32>::zeroed(grid_size as usize)
                 .expect("failed to create `in_block_sums` device buffer");
 
             block_sums
@@ -191,18 +196,18 @@ pub mod device {
                 block_sum_kernel,
                 &in_block_sums,
                 &mut block_sums,
-                block_size,
-                smem_size,
+                nb_elem,
                 stream,
+                depth + 1,
             );
         }
 
         // Update the rest of the buffer's elements with the partial sum of each block
         unsafe {
             launch!(
-            block_sum_kernel<<<grid_size, block_size / 2, 0, stream>>>(
-                d_in.as_device_ptr(),
-                d_in.len(),
+            block_sum_kernel<<<grid_size, block_size, 0, stream>>>(
+                d_out.as_device_ptr(),
+                d_out.len(),
                 d_out.as_device_ptr(),
                 block_sums.as_device_ptr(),
                 block_sums.len()

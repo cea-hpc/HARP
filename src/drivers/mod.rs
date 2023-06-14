@@ -387,6 +387,7 @@ pub fn reduce(args: CliArgs) {
             HostKernelVariant::SeqIter,
         ));
 
+        // if len >= 2097152 {
         host_perf_reports.push(host::reduce(
             &x,
             args.meta_repetitions,
@@ -403,6 +404,7 @@ pub fn reduce(args: CliArgs) {
             )
             .unwrap(),
         );
+        // }
     }
 
     let mut output: Box<dyn Write> = match args.output_file {
