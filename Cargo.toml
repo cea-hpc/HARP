@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.2", features = ["derive"] }
-cust = { version = "0.3.2", features = ["bytemuck"] }
+cust = { version = "0.3.2", path = "../rust-cuda/crates/cust", features = ["bytemuck"] }
 num = "0.4.0"
 ocl = "0.19.4"
 rand = { version = "0.8.5", features = ["small_rng"] }

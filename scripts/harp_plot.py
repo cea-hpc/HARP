@@ -38,7 +38,7 @@ def main():
         "#ef9f72", # peach/CUDA tiled
         "#414559", # gray/Rust-CUDA
     ]
-    assert(len(colors) >= len(variants), "Not enough colors")
+    # assert(len(colors) >= len(variants), "Not enough colors")
 
     # Define the figure and subplots
     fig = make_subplots(
