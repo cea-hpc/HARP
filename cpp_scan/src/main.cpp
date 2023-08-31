@@ -1,4 +1,4 @@
-#include "scan.h"
+#include "scan.hpp"
 #include "timer.h"
 #include "utils.h"
 
@@ -57,7 +57,7 @@ auto main(int32_t argc, char* argv[]) -> int32_t {
 
 	// Do GPU scan
 	auto d_start = std::clock();
-	scan_inner(d_out_optim, d_in, len);
+	scan(d_out_optim, d_in, len);
 	double d_duration =
 		static_cast<double>(std::clock() - d_start) / static_cast<double>(CLOCKS_PER_SEC);
 

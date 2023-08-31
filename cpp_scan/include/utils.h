@@ -4,21 +4,23 @@
 #ifndef UTILS_H__
 #define UTILS_H__
 
-#include <cassert>
-#include <cmath>
+#include <assert.h>
+#include <iomanip>
+#include <iostream>
+#include <math.h>
+#include <stdio.h>
+
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
-#include <iomanip>
-#include <iostream>
 
 #define checkCudaErrors(val) check((val), #val, __FILE__, __LINE__)
 
 template <typename T>
-void check(T err, const char* const func, const char* const file, const int line) {
+void check(T err, char const* func, char const* file, int32_t line) {
     if (err != cudaSuccess) {
-        std::cerr << "CUDA error at: " << file << ":" << line << std::endl;
-        std::cerr << cudaGetErrorString(err) << " " << func << std::endl;
+        fprintf(stderr, "CUDA error in %s:%d\n", file, line);
+        fprintf(stderr, " -> %s %s", cudaGetErrorString(err), func);
         exit(1);
     }
 }

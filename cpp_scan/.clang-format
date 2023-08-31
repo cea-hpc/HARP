@@ -1,0 +1,218 @@
+# --------------------------------------------------------------------------- #
+#     __  ___  ___     ____     ___     ____                                  #
+#    /  |/  / /   |   / __ \   /   |   / __ \     Coding style guidelines     #
+#   / /|_/ / / /| |  / / / /  / /| |  / / / /                                 #
+#  / /  / / / ___ | / /_/ /  / ___ | / /_/ /      Configuration file for      #
+# /_/  /_/ /_/  |_| \___\_\ /_/  |_| \____/       `clang-format`.             #
+#                                                                             #
+# Modular Assembly Quality Analyzer and Optimizer                             #
+#     http://www.maqao.org/                                                   # 
+# --------------------------------------------------------------------------- #
+
+Language: Cpp
+
+# --------------------------------------------------------------------------- #
+# Basic rules                                                                 #
+# --------------------------------------------------------------------------- #
+# Column limit on which to break.
+ColumnLimit: 100
+
+# Number of columns used for tab stops.
+TabWidth: 4
+
+# Number of columns used for indentation.
+IndentWidth: 4
+
+# Indent width for line continuations.
+ContinuationIndentWidth: 4
+
+# Align pointers and references on the right (next to the type).
+PointerAlignment: Left
+
+# Do not insert spaces in parentheses.
+SpacesInParentheses: false
+
+# Do not insert spaces in square brackets.
+SpacesInSquareBrackets: false
+
+# Never use tab to indent (use spaces instead).
+UseTab: Never
+
+
+# --------------------------------------------------------------------------- #
+# Alignment behavior                                                          #
+# --------------------------------------------------------------------------- #
+# Horizontally align arguments after an open bracket.
+AlignAfterOpenBracket: BlockIndent
+
+# Do not align assignments on consecutive lines.
+AlignConsecutiveAssignments: false
+
+# Do not align declarations on consecutive lines.
+AlignConsecutiveDeclarations: false
+
+# Do not align macros on consecutive lines.
+AlignConsecutiveMacros: false
+
+# Align `\` on the right-most column (see `ColumnLimit`).
+AlignEscapedNewlines: Right
+
+# Horizontally align operands of binary and ternary expressions.
+AlignOperands: false
+
+# Align comments that are trailing statements.
+AlignTrailingComments: true
+
+
+# --------------------------------------------------------------------------- #
+# Brace wrapping behavior                                                     #
+# --------------------------------------------------------------------------- #
+# Only break for functions and in case of multiline control statements.
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: false
+  AfterControlStatement: Never
+  AfterEnum: false
+  AfterFunction: false
+  AfterObjCDeclaration: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: false
+  BeforeWhile: false
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+
+
+# --------------------------------------------------------------------------- #
+# Line breaking behavior                                                      #
+# --------------------------------------------------------------------------- #
+# Do not break after function's return type.
+AlwaysBreakAfterReturnType: None
+
+# Do not break after multiline string literals.
+AlwaysBreakBeforeMultilineStrings: false
+
+# Break if arguments do not fit on the same line.
+BinPackArguments: false
+
+# Break if function parameters do not fit on the same line.
+BinPackParameters: false
+
+# Break before binary operators that are not assignments.
+BreakBeforeBinaryOperators: NonAssignment
+
+# Break after ternary operator.
+BreakBeforeTernaryOperators: false
+
+# Allow breaking on long string literals.
+BreakStringLiterals: true
+
+
+# --------------------------------------------------------------------------- #
+# Indenting behavior                                                          #
+# --------------------------------------------------------------------------- #
+# Indent case labels from switch statement.
+IndentCaseLabels: true
+
+# Indent goto labels.
+IndentGotoLabels: true
+
+# Indent pre-processor directives before the hash.
+IndentPPDirectives: BeforeHash
+
+# Do not indent if a function definition or declaration is wrapped after the type.
+IndentWrappedFunctionNames: false
+
+
+# --------------------------------------------------------------------------- #
+# Space insertion behavior                                                    #
+# --------------------------------------------------------------------------- #
+# Insert space around the colon.
+BitFieldColonSpacing: Both
+
+# Do not insert a space after a C-style cast.
+SpaceAfterCStyleCast: false
+
+# Do not insert a space after logical not operator.
+SpaceAfterLogicalNot: false
+
+# Do not insert spaces around pointer qualifiers.
+SpaceAroundPointerQualifiers: Default
+
+# Insert spaces around assignment operators.
+SpaceBeforeAssignmentOperators: true
+
+# Do not insert a space before a colon.
+SpaceBeforeCaseColon: false
+
+# Only insert a space before control statements.
+SpaceBeforeParens: ControlStatements
+
+# Insert a space inside empty blocks.
+SpaceInEmptyBlock: true
+
+# Do not insert a space inside empty parentheses.
+SpaceInEmptyParentheses: false
+
+# Insert a single space before trailing comments.
+SpacesBeforeTrailingComments: 1
+
+# Do not insert spaces in C-style casts parentheses.
+SpacesInCStyleCastParentheses: false
+
+# Insert at least single space before text in a line comment.
+SpacesInLineCommentPrefix:
+  Minimum: 1
+  Maximum: -1
+
+# --------------------------------------------------------------------------- #
+# Misc                                                                        #
+# --------------------------------------------------------------------------- #
+# Do not allow putting all arguments onto the next line.
+AllowAllArgumentsOnNextLine: false
+
+# Do not allow putting all function parameters declaration onto the next line.
+AllowAllParametersOfDeclarationOnNextLine: false
+
+# Do not allow short blocks on a single line.
+AllowShortBlocksOnASingleLine: Empty
+
+# Do not allow short `case` labels on a single line.
+AllowShortCaseLabelsOnASingleLine: false
+
+# Do not allow short enumerations on a single line.
+AllowShortEnumsOnASingleLine: false
+
+# Do not allow short functions on a single line.
+AllowShortFunctionsOnASingleLine: false
+
+# Do not allow short `if` statements on a single line.
+AllowShortIfStatementsOnASingleLine: false
+
+# Do not allow short loops on a single line.
+AllowShortLoopsOnASingleLine: false
+
+# Treat curly braces as parentheses and do not insert space inside the braced list.
+Cpp11BracedListStyle: false
+
+# Merge multiple include blocks, sort and split based on category.
+IncludeBlocks: Regroup
+
+# Sort includes regardless of their case.
+SortIncludes: CaseInsensitive
+
+# Do not keep empty lines at the start of blocks.
+KeepEmptyLinesAtTheStartOfBlocks: false
+
+# Maximum number of consecutive empty lines to keep.
+MaxEmptyLinesToKeep: 1
+
+# Reflow comments exceeding column limit.
+ReflowComments: true
+
+# Insert trailing commas in multiline container literals.
+#InsertTrailingCommas: Wrapped
