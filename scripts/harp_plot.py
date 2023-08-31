@@ -1,16 +1,19 @@
 #! /usr/bin/python3
 
+import os
+import sys
+
 import pandas as pd
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
-
-import os
-import sys
+import plotly.io as pio
 
 
 def main():
     if len(sys.argv) < 2:
-        print(f"Plot generator for HARP's CSV performance reports\n\nUsage: {sys.argv[0]} <INPUT.csv> [OUTPUT.png]")
+        print(
+            f"Plot generator for HARP's CSV performance reports\n\nUsage: {sys.argv[0]} <INPUT.csv> [OUTPUT.png]"
+        )
         return -1
 
     input_file = sys.argv[1]
@@ -29,14 +32,14 @@ def main():
 
     # Define some colors
     colors = [
-        "#e78284", # red/Seq naive
-        "#8caaee", # blue/Seq iter
-        "#a6d189", # green/Rayon iter
-        "#e5c890", # yellow/CL naive
-        "#ca9ee6", # mauve/CL tiled
-        "#f2d5cf", # rosewater/CUDA naive
-        "#ef9f72", # peach/CUDA tiled
-        "#414559", # gray/Rust-CUDA
+        "#1f77b4",
+        "#ff7f0e",
+        "#2ca02c",
+        "#d62728",
+        "#9467bd",
+        "#8c564b",
+        "#e377c2",
+        "#7f7f7f",
     ]
     # assert(len(colors) >= len(variants), "Not enough colors")
 
@@ -64,7 +67,7 @@ def main():
                     go.Scatter(
                         x=data["elems_per_dim"],
                         y=data["avg_runtime"],
-                        error_y=dict(type='data', array=data["stddev"], visible=True),
+                        error_y=dict(type="data", array=data["stddev"], visible=True),
                         mode="lines",
                         name=variant,
                         legendgroup="group1",
@@ -138,12 +141,12 @@ def main():
         title=f"Hardware-accelerated Rust {bench_name} performance metrics",
         title_font_size=16,
         legend=dict(x=1.1, y=0.5),
-        legend_title="Implementation variants"
+        legend_title="Implementation variants",
     )
 
     if len(sys.argv) == 3:
         output_file = sys.argv[2]
-        fig.save(output_file)
+        pio.write_image(fig, output_file, width=1280, height=800)
 
     # Show the plot
     fig.show()
